@@ -38,6 +38,10 @@ window.addEventListener('message', function(evt) {
     script.src = chrome.runtime.getURL('build/react_devtools_backend.js');
     document.documentElement.appendChild(script);
     script.parentNode.removeChild(script);
+  } else if (evt.data.source === 'react-devtools-content-script') {
+    if (evt.data.payload && evt.data.payload.event === 'reactContextMenu') {
+      chrome.runtime.sendMessage(evt.data.payload);
+    }
   }
 });
 
@@ -50,6 +54,19 @@ window.addEventListener('pageshow', function(evt) {
     return;
   }
   chrome.runtime.sendMessage(lastDetectionResult);
+});
+
+document.addEventListener('contextmenu', event => {
+  console.log("superman");
+  let el = event.target;
+  console.log(el);
+  if (el) {
+    window.__REACT_DEVTOOLS_CONTEXT_MENU_HAS_TARGET__ = true;
+    window.__REACT_DEVTOOLS_CONTEXT_MENU_TARGET__ = el;
+    return
+  }
+  window.__REACT_DEVTOOLS_CONTEXT_MENU_HAS_TARGET__ = null;
+  window.__REACT_DEVTOOLS_CONTEXT_MENU_TARGET__ = null;
 });
 
 const detectReact = `
