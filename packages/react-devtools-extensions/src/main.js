@@ -289,9 +289,18 @@ function createPanelIfReactLoaded() {
       }
 
       function setReactSelectionFromContextMenuTarget() {
-        console.log("here");
-        chrome.devtools.inspectedWindow.eval(`window.__REACT_DEVTOOLS_CONTEXT_MENU_HAS_TARGET__`, (data, error) => {console.log(data);});
-        chrome.devtools.inspectedWindow.eval(`window.__REACT_DEVTOOLS_CONTEXT_MENU_TARGET__`, (data, error) => {console.log(data);});
+        chrome.devtools.inspectedWindow.eval(
+          '(window.__REACT_DEVTOOLS_GLOBAL_HOOK__ && window.__REACT_DEVTOOLS_GLOBAL_HOOK__.$0 !== $0) ?' +
+          '(window.__REACT_DEVTOOLS_GLOBAL_HOOK__.$0 = $0, true) :' +
+          'false',
+          (didSelectionChange, evalError) => {
+            if (evalError) {
+              console.error(evalError);
+            } else if (didSelectionChange) {
+              bridge.send('syncSelectionFromNativeElementsPanel');
+            }
+          },
+        );
       }
 
       setReactSelectionFromBrowser();

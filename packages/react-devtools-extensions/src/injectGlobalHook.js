@@ -56,18 +56,6 @@ window.addEventListener('pageshow', function(evt) {
   chrome.runtime.sendMessage(lastDetectionResult);
 });
 
-document.addEventListener('contextmenu', event => {
-  console.log("superman");
-  let el = event.target;
-  console.log(el);
-  if (el) {
-    window.__REACT_DEVTOOLS_CONTEXT_MENU_HAS_TARGET__ = true;
-    window.__REACT_DEVTOOLS_CONTEXT_MENU_TARGET__ = el;
-    return
-  }
-  window.__REACT_DEVTOOLS_CONTEXT_MENU_HAS_TARGET__ = null;
-  window.__REACT_DEVTOOLS_CONTEXT_MENU_TARGET__ = null;
-});
 
 const detectReact = `
 window.__REACT_DEVTOOLS_GLOBAL_HOOK__.on('renderer', function(evt) {
@@ -82,6 +70,15 @@ window.__REACT_DEVTOOLS_GLOBAL_HOOK__.nativeObjectCreate = Object.create;
 window.__REACT_DEVTOOLS_GLOBAL_HOOK__.nativeMap = Map;
 window.__REACT_DEVTOOLS_GLOBAL_HOOK__.nativeWeakMap = WeakMap;
 window.__REACT_DEVTOOLS_GLOBAL_HOOK__.nativeSet = Set;
+`;
+
+const contextMenuInjection = `
+document.addEventListener('contextmenu', event => {
+  let el = event.target;
+  if (el) {
+    window.__REACT_DEVTOOLS_GLOBAL_HOOK__['$0'] = el;
+  }
+});
 `;
 
 // If we have just reloaded to profile, we need to inject the renderer interface before the app loads.
@@ -111,7 +108,8 @@ if ('text/html' === document.contentType) {
       installHook.toString() +
       '(window))' +
       saveNativeValues +
-      detectReact,
+      detectReact +
+      contextMenuInjection
   );
 }
 
